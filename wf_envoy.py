@@ -89,23 +89,23 @@ def main():
 	else:
 		updated_current_production = current_production
 	# sending production metric to wavefront
-	metric_current_production = 'envoy.production.watts' + ' ' +  str(updated_current_production) + ' ' + timestamp_epoch + ' ' +  'source=' + envoy_fqdn
-	sock.sendall(metric_current_production + '\n')
+	metric_current_production = 'envoy.production.watts' + ' ' +  str(updated_current_production) + ' ' + timestamp_epoch + ' ' +  'source=' + envoy_fqdn + ' \n'
+	sock.sendall(metric_current_production.encode('utf-8'))
 	#print(metric_current_production)
 
 	# calculating consumption
 	current_consumption = round(float(production_data['consumption'][0]['wNow']),2)
 	updated_current_consumption = current_consumption
 	# sending consumption metric to wavefront
-	metric_current_consumption = 'envoy.consumption.watts' + ' ' + str(current_consumption) + ' ' + timestamp_epoch + ' ' +  'source=' + envoy_fqdn
-	sock.sendall(metric_current_consumption + '\n')
+	metric_current_consumption = 'envoy.consumption.watts' + ' ' + str(current_consumption) + ' ' + timestamp_epoch + ' ' +  'source=' + envoy_fqdn + ' \n'
+	sock.sendall(metric_current_consumption.encode('utf-8'))
 	#print(metric_current_consumption)
 
 	# calculating net consumption
 	updated_current_net_consumption = round(float(updated_current_production - current_consumption),2)
 	# sending net consumption metric to wavefront
-	metric_current_net_consumption = 'envoy.net.watts' + ' ' + str(updated_current_net_consumption) + ' ' + timestamp_epoch + ' ' +  'source=' + envoy_fqdn
-	sock.sendall(metric_current_net_consumption + '\n')
+	metric_current_net_consumption = 'envoy.net.watts' + ' ' + str(updated_current_net_consumption) + ' ' + timestamp_epoch + ' ' +  'source=' + envoy_fqdn + ' \n'
+	sock.sendall(metric_current_net_consumption.encode('utf-8'))
 	#print(metric_current_net_consumption)
 	
 	sock.close()	

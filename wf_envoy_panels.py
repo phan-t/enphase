@@ -64,7 +64,7 @@ def read_envoy_panel_data( envoy_fqdn, envoy_username, envoy_password ):
 		quit()  # exit the script, cannot connect
 
 	try:
-		# Convert bytes to string type and string type to dict
+		# convert bytes to string type and string type to dict
 		string = response.read().decode('utf-8')
 	except urllib.error.URLError as error:
 		print('Reading of data stopped because error:{}\nURL: {}'.format(error.reason, url) )
@@ -116,8 +116,8 @@ def main():
 					updated_panel_last_watts = panel_last_watts
 				#updated_panel_data = panel_name + ',' + panel_serial + ',' + panel_direction + ',' + str(round(float(panel_last_watts),2)) + ',' + panel_last_timestamp		
 				# sending panel production metric to wavefront
-				metric_panel_current_production = 'envoy.production.watts' + '.' + panel_name + ' ' + str(round(float(updated_panel_last_watts),2)) + ' ' + panel_last_timestamp_epoch + ' ' + 'source=' + envoy_fqdn + ' ' + 'direction=' + '"' + panel_direction + '"'
-				socket.sendall(metric_panel_current_production + '\n')
+				metric_panel_current_production = 'envoy.production.watts' + '.' + panel_name + ' ' + str(round(float(updated_panel_last_watts),2)) + ' ' + panel_last_timestamp_epoch + ' ' + 'source=' + envoy_fqdn + ' ' + 'direction=' + '"' + panel_direction + '"' + ' \n'
+				sock.sendall(metric_panel_current_production.encode('utf-8'))
 				#print(metric_panel_current_production)
 	
 	sock.close()

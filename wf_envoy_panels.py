@@ -10,16 +10,18 @@ created:	19/05/2018
 envoy_fqdn = 'tp-lid-env01.tphome.local'
 envoy_username = 'envoy'
 envoy_password = '000112'
-json_inverter_file = 'inverter_list.json'
+json_inverter_path = '/environments/wf_envoy/github/enphase'
 
 import datetime
 
-def read_inverter_data( json_inverter_file ):
+def read_inverter_data( json_inverter_path ):
 	# define a list of inverters related to their array position
 
 	import json
+	import os
 	
-	with open(json_inverter_file) as json_file:
+	#json_inverter_file = os.path.join(json_inverter_path, 'inverter_list.json')
+	with open(os.path.join(json_inverter_path, 'inverter_list.json')) as json_file:
 		json_inverter_data = json.load(json_file)
 	
 	# print pretty JSON
@@ -98,7 +100,7 @@ def main():
 	# wavefront proxy on localhost
 	sock.connect(('127.0.0.1', 2878))
 	
-	inverter_data = read_inverter_data(json_inverter_file)
+	inverter_data = read_inverter_data(json_inverter_path)
 
 	panel_data = read_envoy_panel_data(envoy_fqdn, envoy_username, envoy_password)	
 	for p in panel_data:
@@ -118,7 +120,7 @@ def main():
 				# sending panel production metric to wavefront
 				metric_panel_current_production = 'envoy.production.watts' + '.' + panel_name + ' ' + str(round(float(updated_panel_last_watts),2)) + ' ' + panel_last_timestamp_epoch + ' ' + 'source=' + envoy_fqdn + ' ' + 'direction=' + '"' + panel_direction + '"' + ' \n'
 				sock.sendall(metric_panel_current_production.encode('utf-8'))
-				#print(metric_panel_current_production)
+				#print(metric_panel_current_production.encode('utf-8'))
 	
 	sock.close()
 

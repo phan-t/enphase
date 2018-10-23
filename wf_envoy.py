@@ -1,10 +1,10 @@
 """
-filename: 	wf_envoy.py
-purpose:	Reads Enphase Envoy data directly, parses results and sends to the Wavefront Proxy
+filename: 		wf_envoy.py
+purpose:		Reads Enphase Envoy data directly, parses results and sends to the Wavefront Proxy
 notes:
 requirements:	Python v3.0 or later
-author: 	Tony Phan
-created:	19/05/2018
+author: 		Tony Phan
+created:		19/05/2018
 """
 
 envoy_fqdn = 'tp-lid-env01.tphome.local'
@@ -13,7 +13,7 @@ envoy_password = '000112'
 
 import datetime
 
-def read_envoy_production_data( envoy_ip_addr ):
+def read_envoy_prod_data( envoy_ip_addr ):
 	# gets production json data from the envoy
 
 	import urllib.request
@@ -23,10 +23,10 @@ def read_envoy_production_data( envoy_ip_addr ):
 
 	socket.setdefaulttimeout(30)
 
-	productionString = '/production.json'
+	prodStr = '/production.json'
 
 	# build the full url to get the production data
-	url = 'http://' + envoy_fqdn + productionString
+	url = 'http://' + envoy_fqdn + prodStr
 
 	# https://docs.python.org/3.4/howto/urllib2.html#id5
 
@@ -51,64 +51,63 @@ def read_envoy_production_data( envoy_ip_addr ):
 		response.close()  # close the connection on error
 		quit()  # exit the script, read data timeout
 
-	json_production_data = json.loads(string)
+	json_prod_data = json.loads(string)
 
 	# close the open response object
 	#urllib.request.urlcleanup()
 	response.close()
 
 	# print pretty JSON
-	#print(json.dumps(json_production_data, indent=4))
+	#print(json.dumps(json_prod_data, indent=4))
 
-	return json_production_data
-	# end of read_envoy_production_data() function
+	return json_prod_data
+	# end of read_envoy_prod_data() function
 
 def main():
 
 	# calls functions to get envoy data and pushes to Wavefront Proxy
-	
+
 	import json
 	import time
 	import socket
-	
+
 	sock = socket.socket()
 	# wavefront proxy on localhost
 	sock.connect(('127.0.0.1', 2878))
 
-	production_data = read_envoy_production_data(envoy_fqdn)
+	prod_data = read_envoy_prod_data(envoy_fqdn)
 	# reading timestamp
-	#timestamp = time.strftime("%a, %d %b %Y %H:%M:%S %Z", time.localtime(production_data['production'][1]['readingTime']))
-	timestamp_epoch = str(production_data['production'][1]['readingTime'])
-	#print('Timestamp: ' + timestamp_epoch)
+	#timestamp = time.strftime("%a, %d %b %Y %H:%M:%S %Z", time.localtime(prod_data['production'][1]['readingTime']))
+	epoch = str(prod_data['production'][1]['readingTime'])
+	#print('Timestamp: ' + epoch)
 
 	# calculating production
-	current_production = round(float(production_data['production'][1]['wNow']),2)
+	cur_prod = round(float(prod_data['production'][1]['wNow']),2)
 	# overriding envoy data when value is less than zero
-	if current_production < 0:
-		updated_current_production = 0
+	if cur_prod < 0:
+		upd_cur_prod  = 0
 	else:
-		updated_current_production = current_production
+		upd_cur_prod  = cur_prod
 	# sending production metric to wavefront
-	metric_current_production = 'envoy.production.watts' + ' ' +  str(updated_current_production) + ' ' + timestamp_epoch + ' ' +  'source=' + envoy_fqdn + ' \n'
-	sock.sendall(metric_current_production.encode('utf-8'))
-	#print(metric_current_production)
+	met_cur_prod = 'envoy.production.watts' + ' ' +  str(upd_cur_prod ) + ' ' + epoch + ' ' +  'source=' + envoy_fqdn + ' \n'
+	sock.sendall(met_cur_prod.encode('utf-8'))
+	#print(met_cur_prod)
 
 	# calculating consumption
-	current_consumption = round(float(production_data['consumption'][0]['wNow']),2)
-	updated_current_consumption = current_consumption
+	cur_cons = round(float(prod_data['consumption'][0]['wNow']),2)
 	# sending consumption metric to wavefront
-	metric_current_consumption = 'envoy.consumption.watts' + ' ' + str(current_consumption) + ' ' + timestamp_epoch + ' ' +  'source=' + envoy_fqdn + ' \n'
-	sock.sendall(metric_current_consumption.encode('utf-8'))
-	#print(metric_current_consumption)
+	met_cur_cons = 'envoy.consumption.watts' + ' ' + str(cur_cons) + ' ' + epoch + ' ' +  'source=' + envoy_fqdn + ' \n'
+	sock.sendall(met_cur_cons.encode('utf-8'))
+	#print(met_cur_cons)
 
 	# calculating net consumption
-	updated_current_net_consumption = round(float(updated_current_production - current_consumption),2)
+	upd_cur_net_cons = round(float(upd_cur_prod  - cur_cons),2)
 	# sending net consumption metric to wavefront
-	metric_current_net_consumption = 'envoy.net.watts' + ' ' + str(updated_current_net_consumption) + ' ' + timestamp_epoch + ' ' +  'source=' + envoy_fqdn + ' \n'
-	sock.sendall(metric_current_net_consumption.encode('utf-8'))
-	#print(metric_current_net_consumption)
-	
-	sock.close()	
+	met_cur_net_cons = 'envoy.net.watts' + ' ' + str(upd_cur_net_cons) + ' ' + epoch + ' ' +  'source=' + envoy_fqdn + ' \n'
+	sock.sendall(met_cur_net_cons.encode('utf-8'))
+	#print(met_cur_net_cons)
+
+	sock.close()
 
 	# end of main() function
 
